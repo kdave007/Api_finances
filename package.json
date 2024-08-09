@@ -1,0 +1,23 @@
+{
+  "name": "finances-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mssql": "^11.0.1",
+    "sequelize": "^6.37.3",
+    "tedious": "^18.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
