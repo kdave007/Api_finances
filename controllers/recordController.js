@@ -1,4 +1,4 @@
-import { getIncomeRecords, getOutcomeRecords, insertIncome, insertOutcome, updateIncome, updateOutcome } from '../models/record.js';
+import { getIncomeRecords, getOutcomeRecords, insertIncome, insertOutcome, updateIncome, updateOutcome, softDeleteOutcomeRecords, softDeleteIncomeRecords } from '../models/record.js';
 
 export const getRecords = async (req, res) => {
   try {
@@ -73,16 +73,26 @@ export const updateOutcomeRecord = async (req, res) => {
   }
 };
 
-export const deleteExistingModel = async (req, res) => {
+export const deleteRecords = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await deleteModel(id);
-    if (result.rowsAffected[0] > 0) {
-      res.send('Model deleted successfully');
-    } else {
-      res.status(404).send('Model not found');
+    const { incomeRecords, outcomeRecords } = req.body;
+
+    // Soft delete income records
+    if (incomeRecords && incomeRecords.length > 0) {
+      await softDeleteIncomeRecords(incomeRecords);
     }
+
+    // Soft delete outcome records
+    if (outcomeRecords && outcomeRecords.length > 0) {
+      await softDeleteOutcomeRecords(outcomeRecords);
+    }
+
+    res.status(200).json({ message: 'Records soft deleted successfully.' });
+    
   } catch (err) {
-    res.status(500).send('Server SQL Error: ' + err.message);
+    res.status(500).json({
+      error: 'An error occurred while soft deleting records.',
+      details: err.message
+    });
   }
 };

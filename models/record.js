@@ -11,13 +11,14 @@ export const getIncomeRecords = async () => {
       description,
       input_date as inputDate,
       input_id as inputId,
-      state,
+      status,
       income_form as incomeForm,
       tip_form as tipForm
 
       FROM Income
       JOIN Income_detail
       ON Income.detail_id = Income_detail.id
+      WHERE status > 0
       ORDER BY input_date ASC;
     `;
     return result.recordset;
@@ -36,11 +37,11 @@ export const getOutcomeRecords = async () => {
       description,
       input_date as inputDate,
       input_id as inputId,
-      state,
+      status,
       form as incomeForm
 
       FROM Outcome_detail
-
+      WHERE status > 0
       ORDER BY input_date ASC;
     `;
     return result.recordset;
@@ -61,7 +62,7 @@ export const insertIncome = async (values) => {
     await request1.query`  INSERT INTO Income_detail (
         input_id,
         input_date,
-        state,
+        status,
         income_form,
         tip_form,
         concept,
@@ -73,7 +74,7 @@ export const insertIncome = async (values) => {
       VALUES (
         ${values.inputId},
         ${values.inputDate},
-        ${values.state},
+        ${values.status},
         ${values.incomeForm},
         ${values.tipForm},
         ${values.concept},
@@ -117,7 +118,7 @@ export const insertOutcome = async (values) => {
         amount,    
         input_id,
         input_date,
-        state,
+        status,
         form,
         concept,
         description
@@ -127,7 +128,7 @@ export const insertOutcome = async (values) => {
         ${values.amount},
         ${values.inputId},
         ${values.inputDate},
-        ${values.state},
+        ${values.status},
         ${values.outcomeForm},
         ${values.concept},
         ${values.description}
@@ -163,7 +164,7 @@ export const updateIncome = async (values) => {
       UPDATE Income_detail
       SET
         input_date = ${values.inputDate},
-        state = ${values.state},
+        status = ${values.status},
         income_form = ${values.incomeForm},
         tip_form = ${values.tipForm},
         concept = ${values.concept},
@@ -203,7 +204,7 @@ export const updateOutcome = async (values) => {
       UPDATE Outcome_detail
       SET
         input_date = ${values.inputDate},
-        state = ${values.state},
+        status = ${values.status},
         form = ${values.outcomeForm},
         amount = ${values.amount},
         concept = ${values.concept},
@@ -219,14 +220,62 @@ export const updateOutcome = async (values) => {
     console.error('Transaction error:', err);
     throw err; 
   }
+
+};
+//***************** SOFT DELETE *********************************
+
+export const softDeleteIncomeRecords = async (incomeRecords) => {
+  const pool = getPool();
+  const transaction = new sql.Transaction(pool);
+
+  try {
+    await transaction.begin();
+
+    for (const record of incomeRecords) {
+      if (record.status === 0) {
+        const request = new sql.Request(transaction);
+        await request.query`
+          UPDATE Income_detail
+          SET status = 0
+          WHERE id = ${record.id} AND status != 0
+        `;
+      }
+    }
+
+    await transaction.commit();
+    console.log('Income records deleted successfully.');
+    return { success: true };
+  } catch (err) {
+    await transaction.rollback();
+    console.error('Transaction error:', err);
+    throw err; // Re-throw the error to be handled by the controller
+  }
 };
 
+export const softDeleteOutcomeRecords  = async (outcomeRecords) => {
+  const pool = getPool();
+  const transaction = new sql.Transaction(pool);
 
-export const deleteModel = async (id) => {
   try {
-    const result = await sql.query`DELETE FROM models WHERE id = ${id}`;
-    return result;
+    await transaction.begin();
+
+    for (const record of outcomeRecords) {
+      if (record.status === 0) {
+        const request = new sql.Request(transaction);
+        await request.query`
+          UPDATE Outcome_detail
+          SET status = 0
+          WHERE id = ${record.id} AND status != 0
+        `;
+      }
+    }
+
+    await transaction.commit();
+    console.log('Outcome records deleted successfully.');
+    return { success: true };
   } catch (err) {
-    throw new Error('Database query error: ' + err.message);
+    await transaction.rollback();
+    console.error('Transaction error:', err);
+    throw err; // Re-throw the error to be handled by the controller
   }
 };
