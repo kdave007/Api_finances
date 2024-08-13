@@ -232,14 +232,14 @@ export const softDeleteIncomeRecords = async (incomeRecords) => {
     await transaction.begin();
 
     for (const record of incomeRecords) {
-      if (record.status === 0) {
-        const request = new sql.Request(transaction);
-        await request.query`
-          UPDATE Income_detail
-          SET status = 0
-          WHERE id = ${record.id} AND status != 0
-        `;
-      }
+      
+      const request = new sql.Request(transaction);
+      await request.query`
+        UPDATE Income_detail
+        SET status = 0
+        WHERE id = ${record.id} AND status != 0
+      `;
+      
     }
 
     await transaction.commit();
@@ -255,19 +255,21 @@ export const softDeleteIncomeRecords = async (incomeRecords) => {
 export const softDeleteOutcomeRecords  = async (outcomeRecords) => {
   const pool = getPool();
   const transaction = new sql.Transaction(pool);
+ 
+  console.log("soft delete outcome",outcomeRecords);
 
   try {
     await transaction.begin();
 
     for (const record of outcomeRecords) {
-      if (record.status === 0) {
-        const request = new sql.Request(transaction);
-        await request.query`
-          UPDATE Outcome_detail
-          SET status = 0
-          WHERE id = ${record.id} AND status != 0
-        `;
-      }
+      
+      const request = new sql.Request(transaction);
+      await request.query`
+        UPDATE Outcome_detail
+        SET status = 0
+        WHERE id = ${record.id} AND status != 0
+      `;
+      
     }
 
     await transaction.commit();

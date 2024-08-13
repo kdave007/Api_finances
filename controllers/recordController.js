@@ -75,6 +75,7 @@ export const updateOutcomeRecord = async (req, res) => {
 
 export const deleteRecords = async (req, res) => {
   try {
+    console.log(req.body);
     const { incomeRecords, outcomeRecords } = req.body;
 
     // Soft delete income records
